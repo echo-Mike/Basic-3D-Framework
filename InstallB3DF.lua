@@ -1,6 +1,6 @@
 --# Main
 
-local url = "https://raw.githubusercontent.com/echo-Mike/basic-3d-framework/master/TABS/"
+local url = "https://raw.githubusercontent.com/echo-Mike/Basic-3D-Framework/master/TABS/"
  
 local function install(data)
     --parse plist into list of tab files
