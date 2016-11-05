@@ -1,9 +1,13 @@
 --DESCRIPTION: Module contains utilites fo differet applications: vpm; v3to4; v4to3; ivert; check; set_rgb_colors.
-if not F_UTILS then
-    F_UTILS = true
+
+--Module declaration
+if F_UTILS then
+    print("f_Utils: F_UTILS variable is already occupied as: "..tostring(F_UTILS))
+else
+    F_UTILS = {loaded = true}
 end
 
---vector (vec4) to matrix multiplication with w component normalisation
+--Vector (vec4) to matrix multiplication with w component normalisation
 function vmp(v, m)
     local res = vec4(0)
     res.x = v.x*m[1]+v.y*m[5]+v.z*m[ 9]+v.w*m[13]
@@ -11,6 +15,11 @@ function vmp(v, m)
     res.z = v.x*m[3]+v.y*m[7]+v.z*m[11]+v.w*m[15]
     res.w = v.x*m[4]+v.y*m[8]+v.z*m[12]+v.w*m[16]
     return res/res.w
+end
+
+--Vector (vec3) to matrix multiplication with w component normalisation (oneliner)
+function v3mp(v, m)
+    return vec3(v.x*m[1]+v.y*m[5]+v.z*m[9]+m[13],v.x*m[2]+v.y*m[6]+v.z*m[10]+m[14],v.x*m[3]+v.y*m[7]+v.z*m[11]+m[15])/(v.x*m[4]+v.y*m[8]+v.z*m[12]+m[16])
 end
 
 --convert vec3 to vec4 by adding 1 as v.w
@@ -25,7 +34,6 @@ end
 
 --append all parameters after first to first parameter(must be table)
 function ivert(t, ...) 
-    --local bt = {..}
     for _,v in pairs({...}) do
         table.insert(t, v)
     end

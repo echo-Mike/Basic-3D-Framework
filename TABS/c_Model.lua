@@ -9,23 +9,24 @@ end
 C_MODEL = {
     loaded = true, 
     f_utils_loaded = true, 
-    no_errors = false,       --Error facility behavior qualifier: false:raise lua error; true:print error messege
+    no_errors = false       --Error facility behavior qualifier: false:raise lua error; true:print error messege
 }
 
 --Error declaration based on Codea autofill specifics
-C_MODEL.errors = {}
+local C_MODEL.errors = {}
 C_MODEL.errors.INITIAL_SIZE = 0
 C_MODEL.errors.MTMA_RANGE = 1
 
 --Error facility declaration
-C_MODEL.error = function(error_type, ...)
+local function C_MODEL.error(error_type, ...)
     local t, s = {...}, ""
     if error_type == C_MODEL.errors.INITIAL_SIZE then
         s = "C_Model:#meshes: "..tostring(t[1]).." and #mesh_transform_matrix_array: "..tostring(t[2]).." aren't equal"
-    end
-    if error_type == C_MODEL.errors.MTMA_RANGE then
+    elseif error_type == C_MODEL.errors.MTMA_RANGE then
         s = "C_Model:Invalid mesh_transform_matrix_array key: "..tostring(t[1])
-    end
+    else
+        s = "C_Model:Unknown error type"
+	end
     if C_MODEL.no_errors then
         print(s)
     else
@@ -34,14 +35,14 @@ C_MODEL.error = function(error_type, ...)
 end
 
 --Append table "t" to table "container"
-C_MODEL.append_tables = function(container, t)
+local function append_tables(container, t)
     for _,v in pairs(t) do
         table.insert(container, v)
     end
 end
 
 --Append userdata "data" to table "container" "times" times
-C_MODEL.append_data = function(container, data, times)
+local function append_data(container, data, times)
     if times > 0 then
         for i = 1,times do
             table.insert(container, data)
@@ -50,14 +51,14 @@ C_MODEL.append_data = function(container, data, times)
 end
 
 --Special function for vertices data conversion in bake function
-C_MODEL.append_position = function(container, t, mat)
+local function append_position(container, t, mat)
     if C_MODEL.f_utils_loaded then
         for _,v in pairs(t) do
-            table.insert(container, v4to3(vmp(v3to4(v),mat)))
+            table.insert(container, v3mp(v,mat))
         end
     else
         for _,v in pairs(t) do
-            table.insert(container, C_MODEL.apply_matrix(v, mat))
+            table.insert(container, C_MODEL.v3mp(v, mat))
         end
     end
 end
@@ -66,7 +67,7 @@ end
 if not F_UTILS then
     C_MODEL.f_utils_loaded = false
     --Vector (vec3) to matrix multiplication with w component normalisation
-    C_MODEL.apply_matrix = function(v, m)
+    C_MODEL.v3mp = function(v, m)
         local res = vec4(0)
         res.x = v.x*m[1]+v.y*m[5]+v.z*m[ 9]+m[13]
         res.y = v.x*m[2]+v.y*m[6]+v.z*m[10]+m[14]
@@ -408,7 +409,7 @@ end
     Output: mesh, datatable
     datatabel content(k,v): (i,satrt index of i mesh in new mesh arrays)
 ]]
-function model:bake()
+function model:bake(return_data)
     local vert, col, tc, norm = {}, {}, {}, {}
     local e = 1
     local datatable = {}
@@ -418,27 +419,27 @@ function model:bake()
         e = e + v.size
         exist, buff = pcall(v.buffer,v,"position")
         if exist and buff then
-            C_MODEL.append_position(vert, buff:get(), self.mesh_transform_matrix_array[i])
+            append_position(vert, buff:get(), self.mesh_transform_matrix_array[i])
         else
-            C_MODEL.append_data(vert, vec3(0,0,0), v.size)
+            append_data(vert, vec3(0,0,0), v.size)
         end
         exist, buff = pcall(v.buffer,v,"color")
         if exist and buff then
-            C_MODEL.append_tables(col, buff:get())
+            append_tables(col, buff:get())
         else
             appendData(col, vec3(0,0,0), v.size)
         end
         exist, buff = pcall(v.buffer,v,"texCoords")
         if exist and buff then
-            C_MODEL.append_tables(tc, buff:get())
+            append_tables(tc, buff:get())
         else
-            C_MODEL.append_data(tc, vec2(0,0), v.size)
+            append_data(tc, vec2(0,0), v.size)
         end
         exist, buff = pcall(v.buffer,v,"normals")
         if exist and buff then
-            C_MODEL.append_tables(norm, buff:get())
+            append_tables(norm, buff:get())
         else
-            C_MODEL.append_data(norm, vec3(0,0,0), v.size)
+            append_data(norm, vec3(0,0,0), v.size)
         end
     end
     local m = mesh()
@@ -446,7 +447,11 @@ function model:bake()
     m.colors = col
     m.texCoords = tc
     m.normals = norm
-    return m, datatable
+    if return_data then
+        return m, datatable
+    else
+        return m
+    end
 end
 
 --[[ 

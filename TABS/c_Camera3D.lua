@@ -75,11 +75,12 @@ function camera3d:clear_transform_matrix()
     self.camera_transform_matrix = matrix()
 end
 
---Sceen camera setup
+--3D camera setup
 function camera3d:camera()
     camera(self.pos.x,self.pos.y,self.pos.z, selflook.x,self.look.y,self.look.z, self.norm.x,self.norm.y,self.norm.z)
 end
 
+--GUI camera setup
 function camera3d:gui()
     camera(0,0,0, 0,0,-10, 0,1,0)
 end
