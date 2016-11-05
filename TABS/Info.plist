@@ -9,8 +9,15 @@
 		<string>f_Utils</string>
 		<string>c_Model</string>
 		<string>c_Camera3D</string>
+		<string>c_Animation</string>
+		<string>c_Inteface</string>
+		<string>c_Light_Source</string>
+		<string>c_Scene</string>
+		<string>f_Touch3D</string>
+		<string>f_Keyboard</string>
 		<string>f_Mesh_Gen</string>
 		<string>f_Set_Textures</string>
+		<string>v_Physics</string>
 		<string>Main</string>
 	</array>
 	<key>Created</key>
