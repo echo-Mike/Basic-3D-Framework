@@ -6,25 +6,19 @@ end
 
 V_PHYSICS = {}
 
-local V_PHYSICS.SORT_AXIS = "x"
+V_PHYSICS.SORT_AXIS = "x"
 
---Reduced and modified version of http://lua-users.org/wiki/CopyTable deepcopy(orig) function
-local function deep_copy(t)
-    local copy
-    if type(t) == 'table' then
-        copy = {}
-        for k, v in pairs(t) do
-            copy[k] = deep_copy(v)
-        end
-        setmetatable(copy, getmetatable(t))
-    else
-        copy = t
-    end
-    return copy
-end
+V_PHYSICS.block_size = vec3(5000)
 
-local function position_table_bound(t)
-    local min, max = {x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0}
+V_PHYSICS.world_size = vec3(100000)
+
+V_PHYSICS.AABB_vector = {}
+
+V_PHYSICS.queue = {}
+
+local function position_table_bound(t, mi, ma)
+    local min = mi or vec3(0)
+    local max = ma or vec3(0)
     for _,v in pairs(t) do
         min.x = math.min(v.x,min.x)
         min.y = math.min(v.y,min.y)
@@ -36,34 +30,19 @@ local function position_table_bound(t)
     return min, max
 end
 
-foo = function(t,key) 
-    if type(t) == "table" then 
-        for k,v in pairs(t) do
-            foo(v,key.."."..tostring(k)) 
-        end 
-    else 
-        print(key, t) 
-    end 
-end
-
-local V_PHYSICS.AABB = {
-    min = {x = 0, y = 0, z = 0},
-    max = {x = 0, y = 0, z = 0},
-    owner = 0,
-    live = true
-}
-
-local V_PHYSICS.AABB_vector = {}
-
-local V_PHYSICS.space = {
-    dynamic = {},
-    static = {}
-}
-
-V_PHYSICS.size = function() return #V_PHYSICS.AABB_vector end
-
 function V_PHYSICS.model_construct_OBB(model)
-    local min, max = position_table_bound(((model:bake()):buffer("position")):get())
+    local buff = 0
+    local min, max = vec3(0), vec3(0)
+    for i,v in ipairs(model.meshes) do
+        buff = v:buffer("position")
+        if buff then
+            buff = buff:get()
+            for j,f in ipairs(buff) do
+                buff[j] = v3mp(f,model.mesh_transform_matrix_array[i])
+            end
+        end
+        min, max = position_table_bound(buff, min, max)
+    end
     model.OBB = {}
     model.OBB[1] = vec3(max.x, max.y, max.z)
     model.OBB[2] = vec3(max.x, max.y, min.z)
@@ -77,7 +56,12 @@ end
 
 function V_PHYSICS.model_construct_AABB(model)
     V_PHYSICS.model_construct_OBB(model)
-    model.AABB = deep_copy(V_PHYSICS.AABB)
+    model.AABB = {
+        min = vec3(0),
+        max = vec3(0),
+        owner = 0,
+        live = true
+    }
     model.AABB.owner = model
     table.insert(V_PHYSICS.AABB_vector, model.AABB)
     V_PHYSICS.model_update_AABB(model)
@@ -91,6 +75,16 @@ function V_PHYSICS.model_update_AABB(model)
     model.AABB.min, model.AABB.max = position_table_bound(obb)
 end
 
+function V_PHYSICS.construct_AABB(object, mi, ma)
+    object.AABB = {
+        min = mi,
+        max = ma,
+        owner = object,
+        live = true
+    }
+    table.insert(V_PHYSICS.AABB_vector, object.AABB)
+end
+
 function V_PHYSICS.test_AABB_collision(a, b)
     if a.max.x < b.min.x or a.min.x > b.max.x then return false end
     if a.max.y < b.min.y or a.min.y > b.max.y then return false end
@@ -98,3 +92,39 @@ function V_PHYSICS.test_AABB_collision(a, b)
     return true
 end
 
+local function cmp_AABB(a, b)
+    return a.min[V_PHYSICS.SORT_AXIS] < b.min[V_PHYSICS.SORT_AXIS]
+end
+
+function V_PHYSICS.sweep_and_prune(block)
+    table.sort(block.AABB_vector, cmp_AABB)
+    local s, s2, v, l = vec3(0), vec3(0), vec3(0), #block.AABB_vector
+    for i,v in ipairs(block.AABB_vector) do
+        s = s + (v.min + v.max)/2
+        s2 = s2 + (v.min + v.max)^2/4
+        for j = i + 1, l do
+            if v.min[V_PHYSICS.SORT_AXIS] < block.AABB_vector[j][V_PHYSICS.SORT_AXIS] then
+                break
+            end
+            if V_PHYSICS.test_AABB_collision(v, block.AABB_vector[j]) then
+                block[j].owner:collision(block.AABB_vector[j])
+            end
+        end
+    end
+    v = (s2 - vec3(s.x^2,s.y^2,s.z^2)/l)/l
+    V_PHYSICS.SORT_AXIS = "x"
+    if v.y > v.x then V_PHYSICS.SORT_AXIS = "y" end
+    if v.z > v[V_PHYSICS.SORT_AXIS] then V_PHYSICS.SORT_AXIS = "z" end
+end
+
+function V_PHYSICS.setup(camera, projection_parameters)
+    
+end
+
+function V_PHYSICS.update()
+
+end
+
+function V_PHYSICS.stop()
+
+end

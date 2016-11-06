@@ -13,12 +13,12 @@ C_MODEL = {
 }
 
 --Error declaration based on Codea autofill specifics
-local C_MODEL.errors = {}
+C_MODEL.errors = {}
 C_MODEL.errors.INITIAL_SIZE = 0
 C_MODEL.errors.MTMA_RANGE = 1
 
 --Error facility declaration
-local function C_MODEL.error(error_type, ...)
+function C_MODEL.error(error_type, ...)
     local t, s = {...}, ""
     if error_type == C_MODEL.errors.INITIAL_SIZE then
         s = "C_Model:#meshes: "..tostring(t[1]).." and #mesh_transform_matrix_array: "..tostring(t[2]).." aren't equal"

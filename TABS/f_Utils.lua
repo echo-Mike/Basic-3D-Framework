@@ -69,3 +69,28 @@ function set_rgb_colors(mes)
     end
     mes.colors = c
 end
+
+--Reduced and modified version of http://lua-users.org/wiki/CopyTable deepcopy(orig) function
+local function deepCopy(t)
+    local copy
+    if type(t) == 'table' then
+        copy = {}
+        for k, v in pairs(t) do
+            copy[k] = deepCopy(v)
+        end
+        setmetatable(copy, getmetatable(t))
+    else
+        copy = t
+    end
+    return copy
+end
+
+function recPrint(t,key) 
+    if type(t) == "table" then 
+        for k,v in pairs(t) do
+            recPrint(v,key.."."..tostring(k)) 
+        end 
+    else 
+        print(key, t) 
+    end 
+end
