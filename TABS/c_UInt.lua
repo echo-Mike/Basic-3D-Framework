@@ -110,9 +110,17 @@ uint["__eq"] = function(op1, op2)
     if is[1] and is[2] then 
         return op1.value == op2.value
     elseif is[1] and not is[2] then
-        return op1.value == op2
+        if type(op2) == "string" then
+            return tostring(op1) == op2
+        else
+            return op1.value == op2
+        end
     elseif not is[1] and is[2] then
-        return op1 == op2.value
+        if type(op1) == "string" then
+            return op1 == tostring(op2)
+        else
+            return op1 == op2.value
+        end
     else
         return false
     end
@@ -144,6 +152,7 @@ uint["__le"] = function(op1, op2)
     end
 end
 
+--Represent value as 4 char string
 uint["__tostring"] = function(v)
     return string.char(v.value % 256, math.floor(v.value / 256) % 256, math.floor(v.value / 65536) % 256, math.floor(v.value / 16777216) % 256)
 end
@@ -161,6 +170,7 @@ function uint:init(value,escape)
     end
 end
 
+--Return string with BIN form of value, lower byte on right
 function uint:bin_form()
     local res, buff = "", self.value
     for i =31,0,-1 do
@@ -175,20 +185,64 @@ function uint:bin_form()
     return res
 end
 
+--Return string with HEX form of value, lower byte on right
 function uint:hex_form()
     return string.format("%X", self.value)
 end
 
+--Create uint from 4 bytes - (0:255) values 
 function uint.from_bytes(lowlow,lowhigh,highlow,highhigh)
+    local ll = lowlow or 0
+    local lh = lowhigh or 0
+    local hl = highlow or 0
+    local hh = highhigh or 0    
     return uint(lowlow + lowhigh*256 + highlow*65536 + highhigh*16777216)
 end
 
+--Create uint from 4 chars
 function uint.from_chars(lowlow,lowhigh,highlow,highhigh)
     return uint.from_bytes(lowlow:byte(),lowhigh:byte(),highlow:byte(),highhigh:byte())
 end
 
+--Create uint from string where lower byte on i place and highest on j place 
 function uint.from_string(s,i,j)
     local b = i or 1
     local e = j or 4
     return uint.from_bytes(s:byte(b,e))
+end
+
+--[[ FOR LUA 5.1 - 5.3
+    LUA firstly compares type of variables, 
+    then compares their metatables,
+    and only then calls metametod, 
+    so if you need to compare two variables of separate types 
+    you need to do it without ==, >=, <=, <,> signs
+    This mechanism is described here in "eq" section:
+    http://www.lua.org/manual/5.1/manual.html#2.8
+    and here:
+    http://www.lua.org/manual/5.3/manual.html#2.4
+]]
+
+function uint.eq(op1,op2)
+    return uint.__eq(op1,op2)
+end
+
+function uint.neq(op1,op2)
+    return not uint.__eq(op1,op2)
+end
+
+function uint.lt(op1,op2)
+    return uint.__lt(op1,op2)
+end
+
+function uint.le(op1,op2)
+    return uint.__le(op1,op2)
+end
+
+function uint.bt(op1,op2)
+    return not uint.__le(op1,op2)
+end
+
+function uint.be(op1,op2)
+    return not uint.__lt(op1,op2)
 end

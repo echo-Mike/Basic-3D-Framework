@@ -59,7 +59,7 @@ function checkByMetatable(value, example, errortext, errorvalue)
     end
 end
 
---sets red,green and blue color to every triangle in mesh
+--Sets red,green and blue color to every triangle in mesh
 function set_rgb_colors(mes)
     local c = {}
     for i =1, mes.size/3 do
@@ -85,7 +85,9 @@ local function deepCopy(t)
     return copy
 end
 
+--Recursively print content of variable 't'
 function recPrint(t,key) 
+    local key = key or "main"
     if type(t) == "table" then 
         for k,v in pairs(t) do
             recPrint(v,key.."."..tostring(k)) 
@@ -94,3 +96,27 @@ function recPrint(t,key)
         print(key, t) 
     end 
 end
+
+--String class improvements from http://lua-users.org/wiki/StringIndexing
+
+--Index chars in string as: string[char_position]
+getmetatable('').__index = function(str,i)
+    if type(i) == 'number' then
+        return string.sub(str,i,i)
+    else
+        return string[i]
+    end
+end
+
+--Index chars in string as: string(start_char_index, end_char_index) or string{index1,index2,...}
+getmetatable('').__call = function(str,i,j)  
+    if type(i)~='table' then 
+        return string.sub(str,i,j) 
+    else 
+        local t={} 
+        for k,v in ipairs(i) do 
+            t[k]=string.sub(str,v,v) 
+        end
+        return table.concat(t)
+    end
+  end
