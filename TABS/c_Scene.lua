@@ -1,6 +1,17 @@
 --[[
     DESCRIPTION: 
         Module contains implementation of scene class
+    AUTHOR:
+        Mikhali Demchenko
+        dev.echo.mike@gmail.com
+        https://github.com/echo-Mike
+    v_0.0.2:
+        UPDATED:
+            NULL() --Function place in file
+            check_table_content_class() --Function place in file
+            sceen:draw() --Current camera "draw" call added
+        CREATED:
+            TODOLIST section
     v_0.0.1: 
         CREATED: 
             Error facility:
@@ -15,6 +26,11 @@
             Other local functions:
                 void NULL()
                 boolean[,float][,string] check_table_content_class(table t, class_table klass)
+]]
+--[[
+    TODOLIST:
+        1: сделать возврат от V_PHYSICS.setup указатель на функцию обновления
+        2: сделать возврат от V_ANIMATION.setup указатель на функцию обновления
 ]]
 --[[
     DEPENDENCIES(STRONG): 
@@ -33,6 +49,7 @@ require("c_Interface")
 require("c_Model")
 require("c_Animation")
 
+--Module and module internal functions declaration
 if C_SCENE then
     error("c_Scene: C_SCENE variable is already occupied as: "..tostring(C_SCENE))
 end
@@ -46,7 +63,7 @@ C_SCENE = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.1"
+    version = "0.0.2"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -85,7 +102,24 @@ function C_SCENE.error(error_type, ...)
     end
 end
 
---Dependencies chesk
+--Function that do nothing except it can be called as NULL()
+local function NULL() end
+
+--[[
+    Checks content of the table "t" to be a class members of class "klass"
+    Return true if all content is a class members of "klass"
+    Otherwise return false and key of object that is not in "klass" class
+]]
+local function check_table_content_class(t, klass)
+    for k,v in pairs(t) do
+        if not v:is_a(klass) then
+            return false, k
+        end
+    end
+    return true
+end
+
+--Dependencies check
 
 --No WEAK dependencies to check
 
@@ -99,7 +133,7 @@ function scene:init(t)
     self.interface_storage = t.interface_storage or {interface()}
     self.interface_elector = t.interface_elector or 1
     --Camera class object/s setup
-    slef.camera_storage = t.camera_storage or {camera3d()} --TODO: перенести управление viewport в класс camera3d
+    slef.camera_storage = t.camera_storage or {camera3d()}
     self.camera_elector = t.camera_elector or 1
     --Model and Light_Source storage setups
     self.model_storage = t.model_storage or {}
@@ -111,7 +145,7 @@ function scene:init(t)
     end
     --Physics engine setup
     if t.physics then
-        self.physics = V_PHYSICS.setup(self,t.physics) --TODO: сделать возврат от V_PHYSICS.setup указатель на функцию обновления 
+        self.physics = V_PHYSICS.setup(self,t.physics)
         self.physics_callback = t.physics_callback or NULL
     end
     self.valid = self:validate()
@@ -135,6 +169,8 @@ function scene:draw()
     self.camera_storage[self.camera_elector]:gui()
     --Draw all gui objects
     self.interface_storage[self.interface_elector]:draw()
+    --Draw saved canvases on screen
+    self.camera_storage[self.camera_elector]:draw()
     return true
 end
 
@@ -218,21 +254,4 @@ function scene:validate()
         buff = buff and V_ANIMATION.validate()
     end
     return buff
-end
-
---Function that do nothing except it can be called as NULL()
-local function NULL() end
-
---[[
-    Checks content of the table "t" to be a class members of class "klass"
-    Return true if all content is a class members of "klass"
-    Otherwise return false and key of object that is not in "klass" class
-]]
-local function check_table_content_class(t, klass)
-    for k,v in pairs(t) do
-        if not v:is_a(klass) then
-            return false, k
-        end
-    end
-    return true
 end
