@@ -1,1 +1,0 @@
---DESCRIPTION: Module contains implementation of model class
