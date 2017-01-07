@@ -2,9 +2,15 @@
     DESCRIPTION: 
         Module contains implementation of camera3d class
     AUTHOR:
-        Mikhali Demchenko
+        Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.2:
+        CREATED:
+            NAMESPACE section
+        BUGSCLOSED:
+            Mikhali instead of Mikhail in AUTHOR section
+            C_SCENE in C_CAMERA3D.error function
     v_0.0.1: 
         CREATED: 
             Error facility:
@@ -31,6 +37,23 @@
                 void clear_transform_matrix()
 ]]
 --[[
+    NAMESPACE:
+        GLOBAL:
+            variable C_CAMERA3D
+            class camera3d
+                camera3d init(table t)
+                void sync_look_at(void)
+                void sync_fps(void)
+                boolean[,string] camera(void)
+                boolean[,string] gui(void)
+                boolean[,string] draw(void)
+                void control_view(float deltaL, float deltaA)
+                boolean validate(void)
+        LOCAL:
+            variable errors
+            void v_camera(vec3 pos, vec3 look, vec3 norm)
+]]
+--[[
     TODOLIST:
         1: добавить интерфейс управления viewport
         2: создать интерфейс управления движением и направлением камеры
@@ -54,7 +77,7 @@ C_CAMERA3D = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.1"
+    version = "0.0.2"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -72,9 +95,9 @@ function C_CAMERA3D.error(error_type, ...)
     else
         s = s.."Unknown error type"
 	end
-    if C_SCENE.no_errors == 1 then
+    if C_CAMERA3D.no_errors == 1 then
         print(s)
-    elseif C_SCENE.no_errors == 2 then 
+    elseif C_CAMERA3D.no_errors == 2 then 
         io.stderr:write(s)
     else
         error(s)

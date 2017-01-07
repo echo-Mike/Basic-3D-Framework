@@ -2,9 +2,15 @@
     DESCRIPTION: 
         Module contains implementation of viewport class
     AUTHOR:
-        Mikhali Demchenko
+        Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.2:
+        CREATED:
+            NAMESPACE section
+        BUGSCLOSED:
+            Mikhali instead of Mikhail in AUTHOR section
+            C_SCENE in C_VIEWPORT.error function
     v_0.0.1: 
         CREATED: 
             Error facility:
@@ -15,7 +21,20 @@
                 boolean[,string] setup_2d()
                 boolean[,string] draw()
                 boolean validate()
-]]                
+]]
+--[[
+    NAMESPACE:
+        GLOBAL:
+            variable C_VIEWPORT
+            class viewport
+                viewport init(table t)
+                boolean[,string] setup_3d(void)
+                boolean[,string] setup_2d(void)
+                boolean[,string] draw(void)
+                boolean validate(void)
+        LOCAL:
+            variable errors
+]]
 --[[
     TODOLIST:
         1: создать интерфейс управления параметрами
@@ -39,7 +58,7 @@ C_VIEWPORT = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.1"
+    version = "0.0.2"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -57,9 +76,9 @@ function C_VIEWPORT.error(error_type, ...)
     else
         s = s.."Unknown error type"
 	end
-    if C_SCENE.no_errors == 1 then
+    if C_VIEWPORT.no_errors == 1 then
         print(s)
-    elseif C_SCENE.no_errors == 2 then 
+    elseif C_VIEWPORT.no_errors == 2 then 
         io.stderr:write(s)
     else
         error(s)

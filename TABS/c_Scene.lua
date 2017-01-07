@@ -2,14 +2,19 @@
     DESCRIPTION: 
         Module contains implementation of scene class
     AUTHOR:
-        Mikhali Demchenko
+        Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.3:
+        CREATED:
+            NAMESPACE section
+        BUGSCLOSED:
+            Mikhali instead of Mikhail in AUTHOR section
     v_0.0.2:
         UPDATED:
             NULL() --Function place in file
             check_table_content_class() --Function place in file
-            sceen:draw() --Current camera "draw" call added
+            sceen.draw() --Current camera "draw" call added
         CREATED:
             TODOLIST section
     v_0.0.1: 
@@ -26,6 +31,22 @@
             Other local functions:
                 void NULL()
                 boolean[,float][,string] check_table_content_class(table t, class_table klass)
+]]
+--[[
+    NAMESPACE:
+        GLOBAL:
+            variable C_SCENE
+            class scene
+                scene init(table t)
+                boolean[,string] draw(void)
+                boolean[,string] touched(touch touch)
+                boolean[,string] keyboard(char key)
+                boolean[,string] orientationChanged(const float ori)
+                boolean validate(void)
+        LOCAL:
+            variable errors
+            void NULL(void)
+            boolean[,float][,string] check_table_content_class(table t, class_table klass)
 ]]
 --[[
     TODOLIST:
@@ -63,7 +84,7 @@ C_SCENE = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.2"
+    version = "0.0.3"
 }
 
 --Error declaration based on Codea autofill specifics

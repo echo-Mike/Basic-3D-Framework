@@ -1,5 +1,101 @@
---DESCRIPTION: Module contains implementation of model class 
---DEPENDENCIES(WEAK): F_Utils:vmp(v, m); F_Utils:v3to4(v); F_Utils:v4to3(v)
+--[[
+    DESCRIPTION: 
+        Module contains implementation of model class
+    AUTHOR:
+        Mikhail Demchenko
+        dev.echo.mike@gmail.com
+        https://github.com/echo-Mike
+    v_0.0.1: 
+        CREATED: 
+            Error facility:
+                void C_MODEL.error(const float error_type, ...)
+            model class definition:
+                model init(table t)
+                void draw(void)
+                void add_mesh(mesh[nil] mes, matrix[nil] mesh_transform_matrix, float position)
+                void swap_meshes(int m1, int m2)
+                mesh,matrix remove_mesh(int position)
+                void v_translate(vec3[vec4] dv)
+                void moveto(float X, float Y, float Z)
+                void v_moveto(vec3[vec4] v)
+                void rotate(float deg, float X, float Y, float Z)
+                void global_rotate(float deg, float X, float Y, float Z)
+                void global_rotation(float deg, float X, float Y, float Z)
+                void scale(float x, float y, float z)
+                void clear_transform_matrix(void)
+                void setColors(uint8 r, uint8 g, uint8 b)
+                void mesh_translate(int n, float dx, float dy, float dz)
+                void mesh_v_translate(vec4 dv)
+                void mesh_moveto(int n, float X, float Y, float Z)
+                void mesh_v_moveto(vec4 v)
+                void mesh_rotate(int n, float deg, float X, float Y, float Z)
+                void mesh_model_rotation(int n, float deg, float X, float Y, float Z)
+                void mesh_scale(int n, float x, float y, float z)
+                void mesh_clear_transform_matrix(int n)
+                void mesh_setColors(int n, uint8 r, uint8 g, uint8 b)
+                void mesh_relative_translate(int base, int n, float dx, float dy, float dz)
+                void mesh_relative_moveto(int base, int n, float X, float Y, float Z)
+                void mesh_relative_rotate(int base, int n, float deg, float X, float Y, float Z)
+                void clear_all_transformations(void)
+                mesh[,table] bake(boolean return_data)
+                int in_mtma_range(T[number] n)
+            Other local functions:
+                void append_tables(table container, table t)
+                void append_data(table container, T data, float times)
+                void append_position(table container, table t, matrix mat)
+                vec3 C_MODEL.v3mp(vec3 v, matrix m)
+]]
+--[[
+    NAMESPACE:
+        GLOBAL:
+            variable C_MODEL
+            class model
+                model init(table t)
+                void draw(void)
+                void add_mesh(mesh[nil] mes, matrix[nil] mesh_transform_matrix, float position)
+                void swap_meshes(int m1, int m2)
+                mesh,matrix remove_mesh(int position)
+                void v_translate(vec3[vec4] dv)
+                void moveto(float X, float Y, float Z)
+                void v_moveto(vec3[vec4] v)
+                void rotate(float deg, float X, float Y, float Z)
+                void global_rotate(float deg, float X, float Y, float Z)
+                void global_rotation(float deg, float X, float Y, float Z)
+                void scale(float x, float y, float z)
+                void clear_transform_matrix(void)
+                void setColors(uint8 r, uint8 g, uint8 b)
+                void mesh_translate(int n, float dx, float dy, float dz)
+                void mesh_v_translate(vec4 dv)
+                void mesh_moveto(int n, float X, float Y, float Z)
+                void mesh_v_moveto(vec4 v)
+                void mesh_rotate(int n, float deg, float X, float Y, float Z)
+                void mesh_model_rotation(int n, float deg, float X, float Y, float Z)
+                void mesh_scale(int n, float x, float y, float z)
+                void mesh_clear_transform_matrix(int n)
+                void mesh_setColors(int n, uint8 r, uint8 g, uint8 b)
+                void mesh_relative_translate(int base, int n, float dx, float dy, float dz)
+                void mesh_relative_moveto(int base, int n, float X, float Y, float Z)
+                void mesh_relative_rotate(int base, int n, float deg, float X, float Y, float Z)
+                void clear_all_transformations(void)
+                mesh[,table] bake(boolean return_data)
+                int in_mtma_range(T[number] n)
+        LOCAL:
+            variable errors
+            void append_tables(table container, table t)
+            void append_data(table container, T data, float times)
+            void append_position(table container, table t, matrix mat)
+        WEAK:
+            vec3 C_MODEL.v3mp(vec3 v, matrix m)
+]]
+--[[
+    TODOLIST:
+        1: написать канонический init по примеру c_scene с validate в конце
+        2: 
+]]
+--[[
+    DEPENDENCIES(STRONG): 
+        NON
+]]
 
 --Module and module internal functions declaration
 if C_MODEL then
@@ -9,26 +105,35 @@ end
 C_MODEL = {
     loaded = true, 
     f_utils_loaded = true, 
-    no_errors = false       --Error facility behavior qualifier: false:raise lua error; true:print error messege
+    --[[
+        Error facility behavior qualifier: 
+        0:raise lua error
+        1:print error messege to stdout
+        2:print error messege to stderr
+    ]]
+    no_errors = 0,
+    version = "0.0.1"
 }
 
 --Error declaration based on Codea autofill specifics
-C_MODEL.errors = {}
-C_MODEL.errors.INITIAL_SIZE = 0
-C_MODEL.errors.MTMA_RANGE = 1
+local errors = {}
+errors.INITIAL_SIZE = 0
+errors.MTMA_RANGE = 1
 
 --Error facility declaration
 function C_MODEL.error(error_type, ...)
-    local t, s = {...}, ""
-    if error_type == C_MODEL.errors.INITIAL_SIZE then
-        s = "C_Model:#meshes: "..tostring(t[1]).." and #mesh_transform_matrix_array: "..tostring(t[2]).." aren't equal"
-    elseif error_type == C_MODEL.errors.MTMA_RANGE then
-        s = "C_Model:Invalid mesh_transform_matrix_array key: "..tostring(t[1])
+    local t, s = {...}, "c_Model:"
+    if error_type == errors.INITIAL_SIZE then
+        s = s.."#meshes: "..tostring(t[1]).." and #mesh_transform_matrix_array: "..tostring(t[2]).." aren't equal"
+    elseif error_type == errors.MTMA_RANGE then
+        s = s.."Invalid mesh_transform_matrix_array key: "..tostring(t[1])
     else
-        s = "C_Model:Unknown error type"
+        s = s.."Unknown error type"
 	end
-    if C_MODEL.no_errors then
+    if C_MODEL.no_errors == 1 then
         print(s)
+    elseif C_MODEL.no_errors == 2 then 
+        io.stderr:write(s)
     else
         error(s)
     end
@@ -64,6 +169,7 @@ local function append_position(container, t, mat)
 end
 
 --Dependencies chesk
+
 if not F_UTILS then
     C_MODEL.f_utils_loaded = false
     --Vector (vec3) to matrix multiplication with w component normalisation
@@ -82,25 +188,21 @@ model = class()
 
 --This class uses underscores names notation
 
-function model:init(meshes, model_transform_matrix, mesh_transform_matrix_array, animations)
+function model:init(t)
     self.meshes = {}
-    if type(meshes) == "table" then
-        self.meshes = meshes
+    if type(t.meshes) == "table" then
+        self.meshes = t.meshes
     end
-    if model_transform_matrix then
-        self.model_transform_matrix = model_transform_matrix
-    else
-        self.model_transform_matrix = matrix()
-    end
+    self.model_transform_matrix = t.model_transform_matrix or matrix()
     self.mesh_transform_matrix_array = {}
-    if type(mesh_transform_matrix_array) == "table" then
-        if #meshes ~= #mesh_transform_matrix_array then
-            C_MODEL.error(C_MODEL.errors.INITIAL_SIZE, #meshes, #mesh_transform_matrix_array)
+    if type(t.mesh_transform_matrix_array) == "table" then
+        if #self.meshes ~= #t.mesh_transform_matrix_array then
+            C_MODEL.error(errors.INITIAL_SIZE, #self.meshes, #t.mesh_transform_matrix_array)
         end
-        self.mesh_transform_matrix_array = mesh_transform_matrix_array
+        self.mesh_transform_matrix_array = t.mesh_transform_matrix_array
     else
-        if meshes then
-            for _,_ in pairs(meshes) do
+        if self.meshes and #self.meshes > 0 then
+            for _,_ in pairs(self.meshes) do
                 table.insert(self.mesh_transform_matrix_array, matrix())
             end
         end
@@ -461,7 +563,7 @@ end
 ]]
 function model:in_mtma_range(n)
     if not n or n > #self.mesh_transform_matrix_array or n < 1 then
-        C_MODEL.error(C_MODEL.errors.MTMA_RANGE, n)
+        C_MODEL.error(errors.MTMA_RANGE, n)
     end
     return n
 end
