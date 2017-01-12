@@ -5,6 +5,28 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.3:
+        NEW:
+            New description of vec2, vec3 variables types as Codea:Type in DESCRIPTION and NAMESPACE sections
+            Local functions place in file (after dependencies check)
+        CREATED:
+            Codea classes dependencies check
+            An error to handle Codea classes missing: 
+                NAME: errors.NO_CODEA = 2
+                ERROR_STRING: "Runing without Codea classes"
+            c_Viewport dependencies check
+            An error to handle c_Viewport missing:
+                NAME: errors.NO_C_VIEWPORT = 3
+                ERROR_STRING: "Module c_Viewport needed"
+            BUGLIST section
+            camera3d class definition:
+                boolean[,string] orientationChanged(const float ori)
+        UPDATED:
+            camera3d class definition:
+                boolean[,string] camera(void)
+                boolean[,string] gui(void)
+                boolean[,string] draw(void)
+                    Nested events of self.viewport now correctly handled
     v_0.0.2:
         CREATED:
             NAMESPACE section
@@ -16,24 +38,24 @@
             Error facility:
                 void C_CAMERA3D.error(const float error_type, ...)
             camera3d class definition:
-                boolean[,string] draw()
-                boolean validate()
-                void sync_look_at()
-                void sync_fps()
+                boolean[,string] draw(void)
+                boolean validate(void)
+                void sync_look_at(void)
+                void sync_fps(void)
             Other local functions:
-                void v_camera(vec3 pos, vec3 look, vec3 norm)
+                void v_camera(Codea:vec3 pos, Codea:vec3 look, Codea:vec3 norm)
         RECREATED:
             camera3d class definition:
                 camera3d init(table t)
-                boolean[,string] camera()
-                boolean[,string] gui()
+                boolean[,string] camera(void)
+                boolean[,string] gui(void)
                 void control_view(float deltaL, float deltaA)
         DELETED:
             camera3d class definition:
                 void moveto(float X, float Y, float Z)
-                void vmoveto(vec3 v)
+                void vmoveto(Codea:vec3 v)
                 void translate(float dx, float dy, float dz)
-                void vtranslate(vec3 dv)
+                void vtranslate(Codea:vec3 dv)
                 void clear_transform_matrix()
 ]]
 --[[
@@ -48,19 +70,30 @@
                 boolean[,string] gui(void)
                 boolean[,string] draw(void)
                 void control_view(float deltaL, float deltaA)
+                boolean[,string] orientationChanged(const float ori)
                 boolean validate(void)
         LOCAL:
             variable errors
-            void v_camera(vec3 pos, vec3 look, vec3 norm)
+            void v_camera(Codea:vec3 pos, Codea:vec3 look, Codea:vec3 norm)
 ]]
 --[[
     TODOLIST:
         1: добавить интерфейс управления viewport
         2: создать интерфейс управления движением и направлением камеры
+        3: сделать проще внутренние имена внешних переменных
+        4: 
+]]
+--[[
+    BUGLIST:
+        D756D3B7: Open
+        A78A3B3D: Open
 ]]
 --[[
     DEPENDENCIES(STRONG): 
         c_Viewport:viewport
+        Codea:camera()
+        Codea:vec2()
+        Codea:vec3()
 ]]
 
 --Module and module internal functions declaration
@@ -70,6 +103,7 @@ end
 
 C_CAMERA3D = {
     loaded = true,
+    c_viewport_loaded = true,
     --[[
         Error facility behavior qualifier: 
         0:raise lua error
@@ -77,13 +111,15 @@ C_CAMERA3D = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.2"
+    version = "0.0.3"
 }
 
 --Error declaration based on Codea autofill specifics
 local errors = {}
 errors.VALID_VIEWPORT = 0
 errors.VALID_VIEWPORT_CONTENT = 1
+errors.NO_CODEA = 2
+errors.NO_C_VIEWPORT = 3
 
 --Error facility declaration
 function C_CAMERA3D.error(error_type, ...)
@@ -92,6 +128,10 @@ function C_CAMERA3D.error(error_type, ...)
         s = s.."Viewport must be a \"viewport\" class member but it have type: "..type(t[1]).." and value: "..tostring(t[1])
     elseif error_type == errors.VALID_VIEWPORT_CONTENT then
         s = s.."Viewport is not valid"
+    elseif error_type == errors.NO_CODEA then
+        s = s.."Runing without Codea classes"
+    elseif error_type == errors.NO_C_VIEWPORT then
+        s = s.."Module c_Viewport needed"
     else
         s = s.."Unknown error type"
 	end
@@ -104,16 +144,32 @@ function C_CAMERA3D.error(error_type, ...)
     end
 end
 
+--Dependencies check
+
+--STRONG:
+--Check Codea classes, functions loaded
+if (not camera) or (not vec2) or (not vec3) then
+    C_CAMERA3D.loaded = false
+    C_CAMERA3D.error(errors.NO_CODEA)
+end
+
+require("c_Viewport")
+--Check c_Viewport module loaded
+if (not C_VIEWPORT) or (not C_VIEWPORT.loaded) then
+    C_CAMERA3D.loaded = false
+    C_CAMERA3D.c_viewport_loaded = false
+    C_CAMERA3D.error(errors.NO_C_VIEWPORT)
+end
+
+--Local functions
+
 --Call std Codea function "camera()" with vector(vec3) parameters 
 local function v_camera(pos,look,norm)
     camera(pos.x,pos.y,pos.z, look.x,look.y,look.z, norm.x,norm.y,norm.z)
 end
 
---Dependencies check
-
---No WEAK dependencies to check
-
 --camera3d class definition
+
 camera3d = class()
 
 --This class uses underscores names notation
@@ -163,10 +219,9 @@ function camera3d:camera()
     if not self.valid then 
         return nil, "c_Camera3D.camera:Camera is not valid"
     end
-    self.viewport:setup_3d()
     self:sync_look_at()
     v_camera(self.position, self.look_at.look, self.look_at.norm)
-    return true
+    return self.viewport:setup_3d()
 end
 
 --Setup camera and viewport parameters for 2D drawing
@@ -174,9 +229,8 @@ function camera3d:gui()
     if not self.valid then 
         return nil, "c_Camera3D.gui:Camera is not valid"
     end
-    self.viewport:setup_2d()
     camera(0,0,0, 0,0,-10, 0,1,0)
-    return true
+    return self.viewport:setup_2d()
 end
 
 --Draw saved canvases on screen
@@ -185,8 +239,7 @@ function camera3d:draw()
         return nil, "c_Camera3D.draw:Camera is not valid"
     end
     camera(0,0,0, 0,0,-10, 0,1,0)
-    self.viewport:draw()
-    return true    
+    return self.viewport:draw()
 end
 
 --Control camera(fps) look direction 
@@ -200,6 +253,17 @@ function camera3d:control_view(deltaL, deltaA)
     if self.ang.long > math.pi*2 then self.ang.long = self.ang.long - 2*math.pi end
     if self.ang.alt  > math.pi*2 then self.ang.alt  = self.ang.alt  - 2*math.pi end
     self:sync_look_at()
+end
+
+--Handler of "orientation changed" event
+function camera3d:orientationChanged(ori)
+    if not self.valid then 
+        return nil, "c_Camera3D.orientationChanged:Camera is not valid"
+    end
+    if self.viewport then
+        return self.viewport:orientationChanged(ori)
+    end
+    return nil, "c_Camera3D.orientationChanged:Event wasn't handeled by internal viewport"
 end
 
 --[[

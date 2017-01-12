@@ -5,6 +5,16 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.2:
+        NEW:
+            New description of matrix, mesh, vec2, vec3, vec4 variables types as Codea:Type in DESCRIPTION and NAMESPACE sections
+            Local functions place in file (after dependencies check)
+        CREATED:
+            Codea classes dependencies check
+            An error to handle Codea classes missing: 
+                NAME: errors.NO_CODEA = 2
+                ERROR_STRING: "Runing without Codea classes"
+            BUGLIST section
     v_0.0.1: 
         CREATED: 
             Error facility:
@@ -12,12 +22,12 @@
             model class definition:
                 model init(table t)
                 void draw(void)
-                void add_mesh(mesh[nil] mes, matrix[nil] mesh_transform_matrix, float position)
+                void add_mesh(Codea:mesh[nil] mes, Codea:matrix[nil] mesh_transform_matrix, int position)
                 void swap_meshes(int m1, int m2)
-                mesh,matrix remove_mesh(int position)
-                void v_translate(vec3[vec4] dv)
+                Codea:mesh,Codea:matrix remove_mesh(int position)
+                void v_translate(Codea:vec3[Codea:vec4] dv)
                 void moveto(float X, float Y, float Z)
-                void v_moveto(vec3[vec4] v)
+                void v_moveto(Codea:vec3[Codea:vec4] v)
                 void rotate(float deg, float X, float Y, float Z)
                 void global_rotate(float deg, float X, float Y, float Z)
                 void global_rotation(float deg, float X, float Y, float Z)
@@ -25,9 +35,9 @@
                 void clear_transform_matrix(void)
                 void setColors(uint8 r, uint8 g, uint8 b)
                 void mesh_translate(int n, float dx, float dy, float dz)
-                void mesh_v_translate(vec4 dv)
+                void mesh_v_translate(Codea:vec4 dv)
                 void mesh_moveto(int n, float X, float Y, float Z)
-                void mesh_v_moveto(vec4 v)
+                void mesh_v_moveto(Codea:vec4 v)
                 void mesh_rotate(int n, float deg, float X, float Y, float Z)
                 void mesh_model_rotation(int n, float deg, float X, float Y, float Z)
                 void mesh_scale(int n, float x, float y, float z)
@@ -37,13 +47,13 @@
                 void mesh_relative_moveto(int base, int n, float X, float Y, float Z)
                 void mesh_relative_rotate(int base, int n, float deg, float X, float Y, float Z)
                 void clear_all_transformations(void)
-                mesh[,table] bake(boolean return_data)
+                Codea:mesh[,table] bake(boolean return_data)
                 int in_mtma_range(T[number] n)
             Other local functions:
                 void append_tables(table container, table t)
                 void append_data(table container, T data, float times)
-                void append_position(table container, table t, matrix mat)
-                vec3 C_MODEL.v3mp(vec3 v, matrix m)
+                void append_position(table container, table t, Codea:matrix mat)
+                Codea:vec3 C_MODEL.v3mp(Codea:vec3 v, Codea:matrix m)
 ]]
 --[[
     NAMESPACE:
@@ -52,12 +62,12 @@
             class model
                 model init(table t)
                 void draw(void)
-                void add_mesh(mesh[nil] mes, matrix[nil] mesh_transform_matrix, float position)
+                void add_mesh(Codea:mesh[nil] mes, Codea:matrix[nil] mesh_transform_matrix, int position)
                 void swap_meshes(int m1, int m2)
-                mesh,matrix remove_mesh(int position)
-                void v_translate(vec3[vec4] dv)
+                Codea:mesh,Codea:matrix remove_mesh(int position)
+                void v_translate(Codea:vec3[Codea:vec4] dv)
                 void moveto(float X, float Y, float Z)
-                void v_moveto(vec3[vec4] v)
+                void v_moveto(Codea:vec3[Codea:vec4] v)
                 void rotate(float deg, float X, float Y, float Z)
                 void global_rotate(float deg, float X, float Y, float Z)
                 void global_rotation(float deg, float X, float Y, float Z)
@@ -65,9 +75,9 @@
                 void clear_transform_matrix(void)
                 void setColors(uint8 r, uint8 g, uint8 b)
                 void mesh_translate(int n, float dx, float dy, float dz)
-                void mesh_v_translate(vec4 dv)
+                void mesh_v_translate(Codea:vec4 dv)
                 void mesh_moveto(int n, float X, float Y, float Z)
-                void mesh_v_moveto(vec4 v)
+                void mesh_v_moveto(Codea:vec4 v)
                 void mesh_rotate(int n, float deg, float X, float Y, float Z)
                 void mesh_model_rotation(int n, float deg, float X, float Y, float Z)
                 void mesh_scale(int n, float x, float y, float z)
@@ -77,15 +87,15 @@
                 void mesh_relative_moveto(int base, int n, float X, float Y, float Z)
                 void mesh_relative_rotate(int base, int n, float deg, float X, float Y, float Z)
                 void clear_all_transformations(void)
-                mesh[,table] bake(boolean return_data)
+                Codea:mesh[,table] bake(boolean return_data)
                 int in_mtma_range(T[number] n)
         LOCAL:
             variable errors
             void append_tables(table container, table t)
-            void append_data(table container, T data, float times)
-            void append_position(table container, table t, matrix mat)
+            void append_data(table container, T data, int times)
+            void append_position(table container, table t, Codea:matrix mat)
         WEAK:
-            vec3 C_MODEL.v3mp(vec3 v, matrix m)
+            Codea:vec3 C_MODEL.v3mp(Codea:vec3 v, Codea:matrix m)
 ]]
 --[[
     TODOLIST:
@@ -93,8 +103,16 @@
         2: 
 ]]
 --[[
-    DEPENDENCIES(STRONG): 
-        NON
+    BUGLIST:
+        D756D3B7: Open
+]]
+--[[
+    DEPENDENCIES(STRONG):
+        Codea:matrix()
+        Codea:mesh()
+        Codea:vec2()
+        Codea:vec3()
+        Codea:vec4()
 ]]
 
 --Module and module internal functions declaration
@@ -103,7 +121,7 @@ if C_MODEL then
 end
 
 C_MODEL = {
-    loaded = true, 
+    loaded = true,
     f_utils_loaded = true, 
     --[[
         Error facility behavior qualifier: 
@@ -112,13 +130,14 @@ C_MODEL = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.1"
+    version = "0.0.2"
 }
 
 --Error declaration based on Codea autofill specifics
 local errors = {}
 errors.INITIAL_SIZE = 0
 errors.MTMA_RANGE = 1
+errors.NO_CODEA = 2
 
 --Error facility declaration
 function C_MODEL.error(error_type, ...)
@@ -127,6 +146,8 @@ function C_MODEL.error(error_type, ...)
         s = s.."#meshes: "..tostring(t[1]).." and #mesh_transform_matrix_array: "..tostring(t[2]).." aren't equal"
     elseif error_type == errors.MTMA_RANGE then
         s = s.."Invalid mesh_transform_matrix_array key: "..tostring(t[1])
+    elseif error_type == errors.NO_CODEA then
+        s = s.."Runing without Codea classes"
     else
         s = s.."Unknown error type"
 	end
@@ -138,6 +159,32 @@ function C_MODEL.error(error_type, ...)
         error(s)
     end
 end
+
+--Dependencies check
+
+--STRONG:
+--Check Codea classes loaded
+if (not mesh) or (not matrix) or (not vec2) or (not vec3) or (not vec4) then
+    C_MODEL.loaded = false
+    C_MODEL.error(errors.NO_CODEA)
+end
+
+--WEAK:
+--Check f_Utils module loaded
+if (not F_UTILS) and (not F_UTILS.loaded) then
+    C_MODEL.f_utils_loaded = false
+    --Vector (vec3) to matrix multiplication with w component normalisation
+    C_MODEL.v3mp = function(v, m)
+        local res = vec4(0)
+        res.x = v.x*m[1]+v.y*m[5]+v.z*m[ 9]+m[13]
+        res.y = v.x*m[2]+v.y*m[6]+v.z*m[10]+m[14]
+        res.z = v.x*m[3]+v.y*m[7]+v.z*m[11]+m[15]
+        res.w = v.x*m[4]+v.y*m[8]+v.z*m[12]+m[16]
+        return vec3(res.x, res.y, res.z)/res.w
+    end
+end
+
+--Local functions
 
 --Append table "t" to table "container"
 local function append_tables(container, t)
@@ -168,22 +215,8 @@ local function append_position(container, t, mat)
     end
 end
 
---Dependencies chesk
-
-if not F_UTILS then
-    C_MODEL.f_utils_loaded = false
-    --Vector (vec3) to matrix multiplication with w component normalisation
-    C_MODEL.v3mp = function(v, m)
-        local res = vec4(0)
-        res.x = v.x*m[1]+v.y*m[5]+v.z*m[ 9]+m[13]
-        res.y = v.x*m[2]+v.y*m[6]+v.z*m[10]+m[14]
-        res.z = v.x*m[3]+v.y*m[7]+v.z*m[11]+m[15]
-        res.w = v.x*m[4]+v.y*m[8]+v.z*m[12]+m[16]
-        return vec3(res.x, res.y, res.z)/res.w
-    end
-end
-
 --model class definition
+
 model = class()
 
 --This class uses underscores names notation

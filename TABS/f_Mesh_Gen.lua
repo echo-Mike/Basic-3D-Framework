@@ -1,16 +1,124 @@
---DESCRIPTION: Module contains functions that generate 3D primitives: UV-sphere; Cubic-sphere; Cylinder; Surface; Cube.
---DEPENDENCIES(STRONG): F_Utils:ivert(t, ...)
+--[[
+    DESCRIPTION: 
+        Module contains functions that generate 3D primitives: 
+            UV-sphere; 
+            Cubic-sphere; 
+            Cylinder; 
+            Surface; 
+            Cube.
+    AUTHOR:
+        Mikhail Demchenko
+        dev.echo.mike@gmail.com
+        https://github.com/echo-Mike
+    v_0.0.1: 
+        CREATED:
+            Error facility:
+                void F_MESH_GEN.error(const float error_type, ...)
+            Functions:
+                Codea:mesh makeUVSphere(float rad, int Lsteps, int Asteps, boolean normals_in)
+                Codea:mesh makeCubeSphere(float rad, int step, boolean normals_in)
+                Codea:mesh makeCylinder(float rad, float heigh, int steps)
+                Codea:mesh makeSurface(Codea:vec3 center)
+                Codea:mesh makeCube(float s)
+]]
+--[[
+    NAMESPACE:
+        GLOBAL:
+            variable F_MESH_GEN
+            Codea:mesh makeUVSphere(float rad, int Lsteps, int Asteps, boolean normals_in)
+            Codea:mesh makeCubeSphere(float rad, int step, boolean normals_in)
+            Codea:mesh makeCylinder(float rad, float heigh, int steps)
+            Codea:mesh makeSurface(Codea:vec3 center)
+            Codea:mesh makeCube(float s)
+        LOCAL:
+            variable errors   
+]]
+--[[
+    TODOLIST:
+        1: сделать функции генерации: 
+            тор; 
+            сфера из иксоаэдра; 
+            сфера из тетраэдра; 
+            сфера из октаэдра.
+        2: добавить стандартную генерацию нормалей
+        3: переписать функцию создания плоскости под возможность задавать её через указание нормали
+        4: 
+]]
+--[[
+    BUGLIST:
+        B7EFCF58: Open
+]]
+--[[
+    DEPENDENCIES(STRONG): 
+        F_Utils:ivert(t, ...)
+        Codea:mesh()
+        Codea:vec3()
+        Codea:vec4()
+]]
+
+--Module declaration
 if F_MESH_GEN then
-    print("f_Mesh_Gen: C_MESH_GEN variable is already occupied as: ", F_MESH_GEN)
-else
-    if not F_UTILS then
-        print("f_Mesh_Gen: Module f_Utils needed")
-    end
-    F_MESH_GEN = true
+    print("f_Mesh_Gen: F_MESH_GEN variable is already occupied as: "..tostring(F_MESH_GEN))
 end
 
---creates UV-sphere 
-function makesphere(rad, Lsteps, Asteps, normals_in)
+F_MESH_GEN = {
+    loaded = true,
+    f_utils_loaded = true,
+    --[[
+        Error facility behavior qualifier: 
+        0:raise lua error
+        1:print error messege to stdout
+        2:print error messege to stderr
+    ]]
+    no_errors = 0,
+    version = "0.0.1"
+}
+
+--Error declaration based on Codea autofill specifics
+local errors = {}
+errors.NO_F_UTILS = 0
+errors.NO_CODEA = 1
+
+--Error facility declaration
+function F_MESH_GEN.error(error_type, ...)
+    local t, s = {...}, "f_Mesh_Gen:"
+    if error_type == errors.NO_F_UTILS then
+        s = s.."Module f_Utils needed"
+    elseif error_type == errors.NO_CODEA then
+        s = s.."Runing without Codea classes"
+    else
+        s = s.."Unknown error type"
+	end
+    if F_MESH_GEN.no_errors == 1 then
+        print(s)
+    elseif F_MESH_GEN.no_errors == 2 then 
+        io.stderr:write(s)
+    else
+        error(s)
+    end
+end
+
+--Dependencies check
+
+--STRONG:
+--Check Codea classes loaded
+if (not mesh) or (not vec3) or (not vec4) then
+    F_MESH_GEN.loaded = false
+    F_MESH_GEN.error(errors.NO_CODEA)
+end
+
+require("f_Utils")
+--Check f_Utils module loaded
+if not F_UTILS.loaded then
+    F_MESH_GEN.loaded = false
+    F_MESH_GEN.f_utils_loaded = false
+    F_MESH_GEN.error(errors.NO_F_UTILS)
+end
+
+--Functions definition
+
+--Create UV-sphere
+function makeUVSphere(rad, Lsteps, Asteps, normals_in)
     local dl, da = math.pi*2/Lsteps, math.pi/Asteps
     if normals_in then
         dl = -dl
@@ -53,7 +161,7 @@ function makesphere(rad, Lsteps, Asteps, normals_in)
     return m
 end
 
---creates sphere from cube
+--Create sphere from cube
 function makeCubeSphere(rad, step, normals_in)
     local steps = math.floor(step)
     local p = {f={}, l={}, b={}, r={}, d={}, t={}}
@@ -93,15 +201,6 @@ function makeCubeSphere(rad, step, normals_in)
                     ivert(v, p[k][a], p[k][c], p[k][b], p[k][b], p[k][c], p[k][d])
                 end
             end
-            --[[
-            --OLD CODE:hard to change normal direction
-            ivert(vert.f, pf[a], p.f[c], p.f[b], p.f[b], p.f[c], p.f[d])
-            ivert(vert.l, p.l[a], p.l[c], p.l[b], p.l[b], p.l[c], p.l[d])
-            ivert(vert.b, pb[a], p.b[c], p.b[b], p.b[b], p.b[c], p.b[d])
-            ivert(vert.r, p.r[a], p.r[c], p.r[b], p.r[b], p.r[c], p.r[d])
-            ivert(vert.d, pd[a], p.d[c], p.d[b], p.d[b], p.d[c], p.d[d])
-            ivert(vert.t, p.t[a], p.t[c], p.t[b], p.t[b], p.t[c], p.t[d])
-              ]]
         end
     end
     appendTables(vertres, vert.f)
@@ -115,8 +214,8 @@ function makeCubeSphere(rad, step, normals_in)
     return m
 end
 
---creates cylinder
-function makecylinder(rad, heigh, steps)
+--Create cylinder
+function makeCylinder(rad, heigh, steps)
     local d,da = heigh/2, -math.pi*2/steps
     local c = {vec3(0,-d,0), vec3(0,d,0)}
     for i = 1, steps do
@@ -142,8 +241,8 @@ function makecylinder(rad, heigh, steps)
     return m
 end
 
---creates surface with length and width 100 in point center, normal have same direction as y axis
-function makesurface(center)
+--Create surface with length and width 100 in point "center", normal have same direction as y axis
+function makeSurface(center)
     local c = {
         vec3(center.x-50, center.y, center.z-50),
         vec3(center.x+50, center.y, center.z-50),
@@ -159,8 +258,8 @@ function makesurface(center)
     return m
 end
 
---creates cube
-function makecube(s)
+--Create cube
+function makeCube(s)
     local d=0.5*s
     local c = {
         vec3(-d, -d, d), -- Left bottom front black

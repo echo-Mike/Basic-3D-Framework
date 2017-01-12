@@ -5,6 +5,30 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.4:
+        NEW:
+            Local functions place in file (after dependencies check)
+        CREATED:
+            c_Interface dependencies check
+            An error to handle c_Interface missing:
+                NAME: errors.NO_C_INTERFACE = 6
+                ERROR_STRING: "Module c_Interface needed"
+            c_Camera3D dependencies check
+            An error to handle c_Camera3D missing:
+                NAME: errors.NO_C_CAMERA3D = 7
+                ERROR_STRING: "Module c_Camera3D needed"
+            c_Model dependencies check
+            An error to handle c_Model missing:
+                NAME: errors.NO_C_MODEL = 8
+                ERROR_STRING: "Module c_Model needed"
+            c_Light dependencies check
+            An error to handle c_Light missing:
+                NAME: errors.NO_C_LIGHT = 9
+                ERROR_STRING: "Module c_Light needed"
+            BUGLIST section
+        UPDATED:
+            Function boolean[,string] scene:orientationChanged(const float ori)
+                camera object(viewport) call on "orientation changed" event added
     v_0.0.3:
         CREATED:
             NAMESPACE section
@@ -23,11 +47,11 @@
                 void C_SCENE.error(const float error_type, ...)
             scene class definition:
                 scene init(table t)
-                boolean[,string] draw()
+                boolean[,string] draw(void)
                 boolean[,string] touched(touch touch)
                 boolean[,string] keyboard(char key)
                 boolean[,string] orientationChanged(const float ori)
-                boolean validate()
+                boolean validate(void)
             Other local functions:
                 void NULL()
                 boolean[,float][,string] check_table_content_class(table t, class_table klass)
@@ -54,21 +78,16 @@
         2: сделать возврат от V_ANIMATION.setup указатель на функцию обновления
 ]]
 --[[
-    DEPENDENCIES(STRONG): 
+    BUGLIST:
+        D756D3B7: Open
+]]
+--[[
+    DEPENDENCIES: 
         c_Camera3D:camera3d
-        c_Light_Source:light_source
         c_Interface:interface
         c_Model:model
-        v_Animation
-        v_Physics
+        c_Light:light
 ]]
-
-require("Codea_classes.Class")
-require("c_Camera3D")
-require("c_Light_Source")
-require("c_Interface")
-require("c_Model")
-require("c_Animation")
 
 --Module and module internal functions declaration
 if C_SCENE then
@@ -77,6 +96,10 @@ end
 
 C_SCENE = {
     loaded = true,
+    c_interface_loaded = true,
+    c_camera3d_loaded = true,
+    c_model_loaded = true,
+    c_light_loaded = true,
     --[[
         Error facility behavior qualifier: 
         0:raise lua error
@@ -84,7 +107,7 @@ C_SCENE = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.3"
+    version = "0.0.4"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -95,6 +118,10 @@ errors.VALID_CAMERA = 2
 errors.VALID_CAMERA_ELECTOR = 3
 errors.VALID_MODEL = 4
 errors.VALID_LIGHT_SOURCE = 5
+errors.NO_C_INTERFACE = 6
+errors.NO_C_CAMERA3D = 7
+errors.NO_C_MODEL = 8
+errors.NO_C_LIGHT = 9
 
 --Error facility declaration
 function C_SCENE.error(error_type, ...)
@@ -110,7 +137,15 @@ function C_SCENE.error(error_type, ...)
     elseif error_type == errors.VALID_MODEL then
         s = s.."Can't validate all model_storage elements, interrupt position: "..tostring(t[1])
     elseif error_type == errors.VALID_LIGHT_SOURCE then
-        s = s.."Can't validate all light_source_storage elements, interrupt position: "..tostring(t[1])
+        s = s.."Can't validate all light_storage elements, interrupt position: "..tostring(t[1])
+    elseif error_type == errors.NO_C_INTERFACE then
+        s = s.."Module c_Interface needed"
+    elseif error_type == errors.NO_C_CAMERA3D then
+        s = s.."Module c_Camera3D needed"
+    elseif error_type == errors.NO_C_MODEL then
+        s = s.."Module c_Model needed"
+    elseif error_type == errors.NO_C_LIGHT then
+        s = s.."Module c_Light needed"
     else
         s = s.."Unknown error type"
 	end
@@ -122,6 +157,43 @@ function C_SCENE.error(error_type, ...)
         error(s)
     end
 end
+
+--Dependencies check
+
+--STRONG:
+require("c_Interface")
+--Check c_Interface module loaded
+if (not C_INTERFACE) or (not C_INTERFACE.loaded) then
+    C_SCENE.loaded = false
+    C_SCENE.c_interface_loaded = false
+    C_SCENE.error(errors.NO_C_INTERFACE)
+end
+
+require("c_Camera3D")
+--Check c_Camera3D module loaded
+if (not C_CAMERA3D) or (not C_CAMERA3D.loaded) then
+    C_SCENE.loaded = false
+    C_SCENE.c_camera3d_loaded = false
+    C_SCENE.error(errors.NO_C_CAMERA3D)
+end
+
+require("c_Model")
+--Check c_Model module loaded
+if (not C_MODEL) or (not C_MODEL.loaded) then
+    C_SCENE.loaded = false
+    C_SCENE.c_model_loaded = false
+    C_SCENE.error(errors.NO_C_MODEL)
+end
+
+require("c_Light")
+--Check c_Light module loaded
+if (not C_LIGHT) or (not C_LIGHT.loaded) then
+    C_SCENE.loaded = false
+    C_SCENE.c_light_loaded = false
+    C_SCENE.error(errors.NO_C_LIGHT)
+end
+
+--Local functions
 
 --Function that do nothing except it can be called as NULL()
 local function NULL() end
@@ -140,11 +212,8 @@ local function check_table_content_class(t, klass)
     return true
 end
 
---Dependencies check
-
---No WEAK dependencies to check
-
 --scene class definition
+
 scene = class()
 
 --This class uses underscores names notation
@@ -158,7 +227,7 @@ function scene:init(t)
     self.camera_elector = t.camera_elector or 1
     --Model and Light_Source storage setups
     self.model_storage = t.model_storage or {}
-    self.light_source_storage = t.light_source_storage or {}
+    self.light_storage = t.light_storage or {}
     --Animation engine setup
     if t.animation then
         self.animation = V_ANIMATION.setup(self,t.animation)
@@ -218,6 +287,7 @@ function scene:orientationChanged(ori)
     if not self.valid then 
         return nil, "c_Scene.orientationChanged:Sceen is not valid"
     end
+    self.camera_storage[self.camera_elector]:orientationChanged(ori)
     self.interface_storage[self.interface_elector]:orientationChanged(ori)
     return true
 end
@@ -258,9 +328,9 @@ function scene:validate()
             return false
         end
     end
-    --Validation of light_source_storage content as elements of light_source calss
-    if #self.light_source_storage ~= 0 then 
-        detector, buff = check_table_content_class(self.light_source_storage,light_source) 
+    --Validation of light_storage content as elements of light calss
+    if #self.light_storage ~= 0 then 
+        detector, buff = check_table_content_class(self.light_storage,light) 
         if not detector then 
             C_SCENE.error(errors.VALID_LIGHT_SOURCE, buf)  
             return false

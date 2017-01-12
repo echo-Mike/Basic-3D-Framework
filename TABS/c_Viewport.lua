@@ -5,6 +5,15 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.3:
+        CREATED:
+            Codea classes dependencies check
+            An error to handle Codea classes missing: 
+                NAME: errors.NO_CODEA = 2
+                ERROR_STRING: "Runing without Codea classes"
+            BUGLIST section
+            viewport class definition:
+                boolean[,string] orientationChanged(const float ori)
     v_0.0.2:
         CREATED:
             NAMESPACE section
@@ -17,10 +26,10 @@
                 void C_VIEWPORT.error(const float error_type, ...)
             viewport class definition:
                 viewport init(table t)
-                boolean[,string] setup_3d()
-                boolean[,string] setup_2d()
-                boolean[,string] draw()
-                boolean validate()
+                boolean[,string] setup_3d(void)
+                boolean[,string] setup_2d(void)
+                boolean[,string] draw(void)
+                boolean validate(void)
 ]]
 --[[
     NAMESPACE:
@@ -31,6 +40,7 @@
                 boolean[,string] setup_3d(void)
                 boolean[,string] setup_2d(void)
                 boolean[,string] draw(void)
+                boolean[,string] orientationChanged(const float ori)
                 boolean validate(void)
         LOCAL:
             variable errors
@@ -38,10 +48,23 @@
 --[[
     TODOLIST:
         1: создать интерфейс управления параметрами
+        2: написать обработку эвента изменения ориентации
 ]]
 --[[
-    DEPENDENCIES: 
-        NON
+    BUGLIST:
+        D756D3B7: Open
+]]
+--[[
+    DEPENDENCIES:
+        Codea:WIDTH
+        Codea:HEIGHT
+        Codea:color()
+        Codea:background()
+        Codea:setContext()
+        Codea:perspective()
+        Codea:ortho()
+        Codea:image()
+        Codea:sprite()
 ]]
 
 --Module and module internal functions declaration
@@ -58,13 +81,14 @@ C_VIEWPORT = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.2"
+    version = "0.0.3"
 }
 
 --Error declaration based on Codea autofill specifics
 local errors = {}
 errors.VALID_WRONG_TYPE = 0
 errors.VALID_NO_KEY = 1
+errors.NO_CODEA = 2
 
 --Error facility declaration
 function C_VIEWPORT.error(error_type, ...)
@@ -73,6 +97,8 @@ function C_VIEWPORT.error(error_type, ...)
         s = s..tostring(t[1]).." must be \""..t[2].."\" but have type: "..type(t[3])
     elseif error_type == errors.VALID_NO_KEY then
         s = s.."Key: "..tostring(t[1]).." is missing in table: "..t[2]
+    elseif error_type == errors.NO_CODEA then
+        s = s.."Runing without Codea classes"
     else
         s = s.."Unknown error type"
 	end
@@ -87,9 +113,19 @@ end
 
 --Dependencies check
 
---No dependencies to check
+--STRONG:
+--Check Codea classes, functions, constants loaded
+if (not color) or (not background) or (not setContext) then
+    if (not perspective) or (not ortho) or (not image) then
+        if (not sprite) or (not WIDTH) or (not HEIGHT) then
+            C_CAMERA3D.loaded = false
+            C_CAMERA3D.error(errors.NO_CODEA)
+        end
+    end
+end
 
 --viewport class definition
+
 viewport = class()
 
 --This class uses underscores names notation
@@ -137,6 +173,15 @@ function viewport:draw()
     ortho(self.ortho.left, self.ortho.right, self.ortho.bottom, self.ortho.top, self.ortho.near, self.ortho.far)
     sprite(self.world_canvas, WIDTH/2, HEIGHT/2)
     sprite(self.interface_canvas)
+    return true
+end
+
+--Handler of "orientation changed" event
+function viewport:orientationChanged(ori)
+    if not self.valid then 
+        return nil, "c_Viewport.orientationChanged:Viewport is not valid"
+    end
+    --TODO: EVENT HANDLE
     return true
 end
 

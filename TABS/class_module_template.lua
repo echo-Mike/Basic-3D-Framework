@@ -12,7 +12,7 @@
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
     v_0.0.1: 
-        CREATED: 
+        CREATED:
             Error facility:
                 void C__NAME.error(const float error_type, ...)
             _name class definition:
@@ -37,7 +37,11 @@
         1: 
 ]]
 --[[
-    DEPENDENCIES(STRONG): 
+    BUGLIST:
+        NON
+]]
+--[[
+    DEPENDENCIES: 
         NON
 ]]
 
@@ -82,9 +86,14 @@ end
 
 --Dependencies check
 
---No WEAK dependencies to check
+--No dependencies to check
+
+--Local functions
+
+--No local functions
 
 --_name class definition
+
 _name = class()
 
 --This class uses underscores names notation
