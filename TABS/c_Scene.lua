@@ -5,6 +5,9 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.5:
+        BUGSCLOSED:
+            D756D3B7
     v_0.0.4:
         NEW:
             Local functions place in file (after dependencies check)
@@ -79,7 +82,7 @@
 ]]
 --[[
     BUGLIST:
-        D756D3B7: Open
+        D756D3B7: Close
 ]]
 --[[
     DEPENDENCIES: 
@@ -107,7 +110,7 @@ C_SCENE = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.4"
+    version = "0.0.5"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -219,6 +222,7 @@ scene = class()
 --This class uses underscores names notation
 
 function scene:init(t)
+    local t = t or {}
     --Interface class object/s setup
     self.interface_storage = t.interface_storage or {interface()}
     self.interface_elector = t.interface_elector or 1

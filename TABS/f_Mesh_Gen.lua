@@ -10,6 +10,9 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.2:
+        BUGSCLOSED:
+            B7EFCF58
     v_0.0.1: 
         CREATED:
             Error facility:
@@ -46,7 +49,7 @@
 ]]
 --[[
     BUGLIST:
-        B7EFCF58: Open
+        B7EFCF58: Close
 ]]
 --[[
     DEPENDENCIES(STRONG): 
@@ -71,7 +74,7 @@ F_MESH_GEN = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.1"
+    version = "0.0.2"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -119,44 +122,59 @@ end
 
 --Create UV-sphere
 function makeUVSphere(rad, Lsteps, Asteps, normals_in)
-    local dl, da = math.pi*2/Lsteps, math.pi/Asteps
-    if normals_in then
+    local cos,sin = math.cos, math.sin
+    local dl = math.pi*2/Lsteps
+    if Lsteps < 3 then dl = math.pi*2/3 end
+    local da = math.pi/(Asteps+1)
+    if Asteps < 1 then da = math.pi/2 end
+    if normals_in then --clockwise rotation for OpenGL render
         dl = -dl
     end
-    local hpi = math.pi/2
-    local c = {vec3(0,-rad, 0), vec3(0, rad, 0)}
-    for i = 1, Asteps-2 do
+    local top = vec3(0,1,0)
+    local bot = -top
+    local c = {}
+    for i = 1, Asteps do
         for j = 1, Lsteps do
-            table.insert(c, vec3(rad*math.cos(j*dl)*math.cos((i+1)*da-hpi), rad*math.sin((i+1)*da-hpi), rad*math.sin(j*dl)*math.cos((i+1)*da-hpi)))
+            table.insert(c, vec3(sin(i*da)*sin(j*dl), -cos(i*da), sin(i*da)*cos(j*dl)))
         end
     end
-    local vert = {}
-    for j = 1, Lsteps do
+    local norm = {}
+    for j = 1, Lsteps do--bottom
         if j == Lsteps then
-            ivert(vert, c[1], c[j+2], c[3])
+            ivert(norm, bot, c[1], c[j])
         else
-            ivert(vert, c[1], c[j+2], c[j+3]) --bottom
+            ivert(norm, bot, c[j+1], c[j])
         end
     end
-    for i= 1,Asteps-3 do
+    for i = 0, Asteps-2 do--middle lanes
         for j = 1, Lsteps do
             if j == Lsteps then
-                ivert(vert, c[Lsteps*(i-1)+j+2], c[Lsteps*i+j+2], c[Lsteps*(i-1)+3]) --face left
-                ivert(vert, c[Lsteps*(i-1)+3], c[Lsteps*i+j+2], c[Lsteps*i+3]) --face right
+                ivert(norm, c[Lsteps*i+j], c[Lsteps*i+1], c[Lsteps*(i+1)+1])
+                ivert(norm, c[Lsteps*i+j], c[Lsteps*(i+1)+1], c[Lsteps*(i+1)+j])
             else
-                ivert(vert, c[Lsteps*(i-1)+j+2], c[Lsteps*i+j+2], c[Lsteps*(i-1)+j+3]) --face left
-                ivert(vert, c[Lsteps*(i-1)+j+3], c[Lsteps*i+j+2], c[Lsteps*i+j+3]) --face right
+                ivert(norm, c[Lsteps*i+j], c[Lsteps*i+j+1], c[Lsteps*(i+1)+j+1])
+                ivert(norm, c[Lsteps*i+j], c[Lsteps*(i+1)+j+1], c[Lsteps*(i+1)+j])
             end
         end
     end
-    for j = 1, Lsteps do
+    for j = 1, Lsteps do--top
         if j == Lsteps then
-            ivert(vert, c[j+Lsteps*(Asteps-3)+2], c[2], c[Lsteps*(Asteps-3)+3])
+            ivert(norm, c[Lsteps*(Asteps-1)+j], c[Lsteps*(Asteps-1)+1], top)
         else
-            ivert(vert, c[j+Lsteps*(Asteps-3)+2], c[2], c[j+Lsteps*(Asteps-3)+3]) --top 
+            ivert(norm, c[Lsteps*(Asteps-1)+j], c[Lsteps*(Asteps-1)+j+1], top)
         end
     end
     local m = mesh()
+    local vert = {}
+    for _,v in ipairs(norm) do
+       table.insert(vert, rad*v)
+    end
+    if normals_in then
+        for i,v in ipairs(norm) do
+           norm[i] = -v
+        end
+    end
+    m.normals = norm
     m.vertices = vert
     return m
 end

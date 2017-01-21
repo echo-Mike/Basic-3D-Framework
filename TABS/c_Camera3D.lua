@@ -5,6 +5,10 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.4:
+        BUGSCLOSED:
+            D756D3B7
+            A78A3B3D
     v_0.0.3:
         NEW:
             New description of vec2, vec3 variables types as Codea:Type in DESCRIPTION and NAMESPACE sections
@@ -80,13 +84,12 @@
     TODOLIST:
         1: добавить интерфейс управления viewport
         2: создать интерфейс управления движением и направлением камеры
-        3: сделать проще внутренние имена внешних переменных
-        4: 
+        3: 
 ]]
 --[[
     BUGLIST:
-        D756D3B7: Open
-        A78A3B3D: Open
+        D756D3B7: Close
+        A78A3B3D: Close
 ]]
 --[[
     DEPENDENCIES(STRONG): 
@@ -111,7 +114,7 @@ C_CAMERA3D = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.3"
+    version = "0.0.4"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -175,43 +178,42 @@ camera3d = class()
 --This class uses underscores names notation
 
 function camera3d:init(t)
+    local t = t or {}
     --Read camera position, every type need one
     self.position = t.cam or vec3(0)
     --Read std Codea camera parameters
-    self.look_at = {} 
-    self.look_at.look = t.look or vec3(-1,0,0)
-    self.look_at.norm = t.norm or vec3(0,1,0)
+    self.look = t.look or vec3(-1,0,0)
+    self.norm = t.norm or vec3(0,1,0)
     --[[
         Convert Codea camera to camera defined 
         by position, altitude angle and longitude angle
         (typically called FPS camera)
     ]]
-    self.fps = {
-        long = 0,
-        alt = 0
-    }
+    self.long = 0
+    self.alt = 0
     self:sync_fps()
+    self.revers = vec2(1,1)
     self.viewport = t.viewport or viewport()
     self.valid = self:validate()
 end
 
 --Setup "Look At" camera data with current "FPS" camera data
 function camera3d:sync_look_at()
-    self.look_at.look.x = math.cos(self.fps.long)*math.cos(self.fps.alt)
-    self.look_at.look.z = math.sin(self.fps.long)*math.cos(self.fps.alt)
-    self.look_at.look.y = math.sin(self.fps.alt)
-    self.look_at.look = self.look_at.look + self.position
-    self.look_at.norm.x = -math.cos(self.fps.long)*math.sin(self.fps.alt)
-    self.look_at.norm.z = -math.sin(self.fps.long)*math.sin(self.fps.alt)
-    self.look_at.norm.y = math.cos(self.fps.alt)
+    self.look.x = math.cos(self.long)*math.cos(self.alt)
+    self.look.z = math.sin(self.long)*math.cos(self.alt)
+    self.look.y = math.sin(self.alt)
+    self.look = self.look + self.position
+    self.norm.x = -math.cos(self.long)*math.sin(self.alt)
+    self.norm.z = -math.sin(self.long)*math.sin(self.alt)
+    self.norm.y = math.cos(self.alt)
 end
 
 --Setup "FPS" camera data with current "Look At" camera data
 function camera3d:sync_fps()
-    local view_v = self.look_at.look - self.position
+    local view_v = self.look - self.position
     local vvxz = vec2(view_v.x, view_v.z)
-    self.fps.long = vvxz:angleBetween(vec2(1,0))
-    self.fps.alt  = math.atan(view_v.y/vvxz:len())
+    self.long = vvxz:angleBetween(vec2(1,0))
+    self.alt  = math.atan(view_v.y/vvxz:len())
 end
 
 --Setup camera and viewport parameters for 3D drawing
@@ -220,7 +222,7 @@ function camera3d:camera()
         return nil, "c_Camera3D.camera:Camera is not valid"
     end
     self:sync_look_at()
-    v_camera(self.position, self.look_at.look, self.look_at.norm)
+    v_camera(self.position, self.look, self.norm)
     return self.viewport:setup_3d()
 end
 
@@ -245,13 +247,13 @@ end
 --Control camera(fps) look direction 
 function camera3d:control_view(deltaL, deltaA)
     if self.norm.y > 0 then
-        self.ang.long = self.ang.long + self.revers.x*deltaL*math.pi
+        self.long = self.long + self.revers.x*deltaL*math.pi
     else
-        self.ang.long = self.ang.long - self.revers.x*deltaL*math.pi
+        self.long = self.long - self.revers.x*deltaL*math.pi
     end
-    self.ang.alt  = self.ang.alt  + self.revers.y*deltaA*math.pi
-    if self.ang.long > math.pi*2 then self.ang.long = self.ang.long - 2*math.pi end
-    if self.ang.alt  > math.pi*2 then self.ang.alt  = self.ang.alt  - 2*math.pi end
+    self.alt  = self.alt  + self.revers.y*deltaA*math.pi
+    if self.long > math.pi*2 then self.long = self.long - 2*math.pi end
+    if self.alt  > math.pi*2 then self.alt  = self.alt  - 2*math.pi end
     self:sync_look_at()
 end
 

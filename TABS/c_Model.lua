@@ -5,6 +5,9 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.3:
+        BUGSCLOSED:
+            D756D3B7
     v_0.0.2:
         NEW:
             New description of matrix, mesh, vec2, vec3, vec4 variables types as Codea:Type in DESCRIPTION and NAMESPACE sections
@@ -99,12 +102,11 @@
 ]]
 --[[
     TODOLIST:
-        1: написать канонический init по примеру c_scene с validate в конце
-        2: 
+        1:  
 ]]
 --[[
     BUGLIST:
-        D756D3B7: Open
+        D756D3B7: Close
 ]]
 --[[
     DEPENDENCIES(STRONG):
@@ -130,7 +132,7 @@ C_MODEL = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.2"
+    version = "0.0.3"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -222,6 +224,7 @@ model = class()
 --This class uses underscores names notation
 
 function model:init(t)
+    local t = t or {}
     self.meshes = {}
     if type(t.meshes) == "table" then
         self.meshes = t.meshes

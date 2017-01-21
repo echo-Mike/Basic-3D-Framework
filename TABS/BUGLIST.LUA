@@ -5,9 +5,9 @@ buglist = {
             c_Camera3D = {
                 places = {
                     "camera3d:init(t)"
-                }
+                },
                 status = {
-                    "open"
+                    "close"
                 }
             },
             c_Viewport = {
@@ -15,7 +15,7 @@ buglist = {
                     "viewport:init(t)"
                 },
                 status = {
-                    "open"
+                    "close"
                 }
             },
             c_Model = {
@@ -23,7 +23,7 @@ buglist = {
                     "model:init(t)"
                 },
                 status = {
-                    "open"
+                    "close"
                 }
             },
             c_Scene = {
@@ -31,11 +31,11 @@ buglist = {
                     "scene:init(t)"
                 },
                 status = {
-                    "open"
+                    "close"
                 }
             },
-        }
-        status = "open",
+        },
+        status = "close",
         description = [[
             Bug takes place in init function of classes defined like:
                 function class:init(t)
@@ -58,13 +58,13 @@ buglist = {
             f_Mesh_Gen = {
                 places = {
                     "makeUVSphere(float rad, int Lsteps, int Asteps, boolean normals_in)"
-                }
+                },
                 status = {
-                    "open"
+                    "close"
                 }
             }
-        }
-        status = "open",
+        },
+        status = "close",
         description = [[
             Генерирует не равномерное распределение треугольников по сфере
         ]]
@@ -74,17 +74,35 @@ buglist = {
             c_Camera3D = {
                 places = {
                     "camera3d:control_view(float deltaL, float deltaA)"
-                }
+                },
                 status = {
-                    "open"
+                    "close"
                 }
             }
-        }
-        status = "open",
+        },
+        status = "close",
         description = [[
             Имена внутренних переменных не совпадают с действительностью,
             переменной self.revers вообще не существует, она должна быть
             Codea:vec2() и ровняться vec2(1,1) в camera3d:init(table t)
         ]]
-    }
+    },
+    FB7A9733 = {
+        places = {
+            c_Viewport = {
+                places = {
+                    "viewport:draw()"
+                },
+                status = {
+                    "close"
+                }
+            },
+        },
+        status = "close",
+        description = [[
+            sprite(self.interface_canvas, WIDTH/2, HEIGHT/2)
+            insted
+            sprite(self.interface_canvas)
+        ]]
+    },
 }

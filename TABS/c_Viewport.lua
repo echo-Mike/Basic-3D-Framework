@@ -5,6 +5,10 @@
         Mikhail Demchenko
         dev.echo.mike@gmail.com
         https://github.com/echo-Mike
+    v_0.0.4:
+        BUGSCLOSED:
+            D756D3B7
+            FB7A9733
     v_0.0.3:
         CREATED:
             Codea classes dependencies check
@@ -52,7 +56,8 @@
 ]]
 --[[
     BUGLIST:
-        D756D3B7: Open
+        D756D3B7: Closed
+        FB7A9733: Closed
 ]]
 --[[
     DEPENDENCIES:
@@ -81,7 +86,7 @@ C_VIEWPORT = {
         2:print error messege to stderr
     ]]
     no_errors = 0,
-    version = "0.0.3"
+    version = "0.0.4"
 }
 
 --Error declaration based on Codea autofill specifics
@@ -131,10 +136,9 @@ viewport = class()
 --This class uses underscores names notation
 
 function viewport:init(t)
+    local t = t or {}
     self.world_canvas = t.world_canvas or image(WIDTH, HEIGHT)
     self.interface_canvas = t.interface_canvas or image(WIDTH, HEIGHT)
-    --self.world_canvas.premultiplied = true
-    --self.interface_canvas.premultiplied = true
     self.perspective = t.perspective or {fov = 100, aspect = WIDTH/HEIGHT, near = 0.1, far = 10000}
     self.ortho = t.ortho or {left = 0, right = WIDTH, bottom = 0, top = HEIGHT, near = -10, far = 10}
     self.world_color = t.world_color or color(0)
@@ -172,7 +176,7 @@ function viewport:draw()
     setContext()
     ortho(self.ortho.left, self.ortho.right, self.ortho.bottom, self.ortho.top, self.ortho.near, self.ortho.far)
     sprite(self.world_canvas, WIDTH/2, HEIGHT/2)
-    sprite(self.interface_canvas)
+    sprite(self.interface_canvas, WIDTH/2, HEIGHT/2)
     return true
 end
 

@@ -1,11 +1,113 @@
---DESCRIPTION: Module contains utilites fo differet applications: vpm; v3to4; v4to3; ivert; check; set_rgb_colors.
+--[[
+    DESCRIPTION: 
+        Module contains utilities for different applications
+    AUTHOR:
+        Mikhail Demchenko
+        dev.echo.mike@gmail.com
+        https://github.com/echo-Mike
+    v_0.0.1: 
+        CREATED:
+            Error facility:
+                void F_UTILS.error(const float error_type, ...)
+            Functions:
+                Codea:vec4 vmp(Codea:vec4 v, Codea:matrix m)
+                Codea:vec3 v3mp(Codea:vec3 v, Codea:matrix m)
+                Codea:vec4 v3to4(Codea:vec3 v)
+                Codea:vec3 v4to3(Codea:vec4 v)
+                void ivert(table t, ...) 
+                T check(T value, string valuetype, string errortext, T errorvalue)
+                T checkByMetatable(T value, T example, string errortext, T errorvalue)
+                void set_rgb_colors(Codea:mesh mes)
+                void gen_normals(Codea:mesh m)
+                table deepCopy(table t)
+                void recPrint(table t, string key)
+                string string:__index(string str, int i)
+                string string:__call(string str, int[table] i, int[nil] j)
+]]
+--[[
+    NAMESPACE:
+        GLOBAL:
+            variable F_UTILS
+            Codea:vec4 vmp(Codea:vec4 v, Codea:matrix m)
+            Codea:vec3 v3mp(Codea:vec3 v, Codea:matrix m)
+            Codea:vec4 v3to4(Codea:vec3 v)
+            Codea:vec3 v4to3(Codea:vec4 v)
+            void ivert(table t, ...) 
+            T check(T value, string valuetype, string errortext, T errorvalue)
+            T checkByMetatable(T value, T example, string errortext, T errorvalue)
+            void set_rgb_colors(Codea:mesh mes)
+            void gen_normals(Codea:mesh m)
+            table deepCopy(table t)
+            void recPrint(table t, string key)
+            string string:__index(string str, int i)
+            string string:__call(string str, int[table] i, int[nil] j)
+        LOCAL:
+            variable errors   
+]]
+--[[
+    TODOLIST:
+        NON
+]]
+--[[
+    BUGLIST:
+        NON
+]]
+--[[
+    DEPENDENCIES(STRONG):
+        Codea:mesh()
+        Codea:vec3()
+        Codea:vec4()
+        Codea:color()
+]]
 
 --Module declaration
 if F_UTILS then
     print("f_Utils: F_UTILS variable is already occupied as: "..tostring(F_UTILS))
-else
-    F_UTILS = {loaded = true}
 end
+
+F_UTILS = {
+    loaded = true,
+    --[[
+        Error facility behavior qualifier: 
+        0:raise lua error
+        1:print error messege to stdout
+        2:print error messege to stderr
+    ]]
+    no_errors = 0,
+    version = "0.0.1"
+}
+
+--Error declaration based on Codea autofill specifics
+local errors = {}
+errors.NO_CODEA = 0
+
+--Error facility declaration
+function F_UTILS.error(error_type, ...)
+    local t, s = {...}, "f_Utils:"
+    if error_type == errors.NO_CODEA then
+        s = s.."Runing without Codea classes"
+    else
+        s = s.."Unknown error type"
+	end
+    if F_UTILS.no_errors == 1 then
+        print(s)
+    elseif F_UTILS.no_errors == 2 then 
+        io.stderr:write(s)
+    else
+        error(s)
+    end
+end
+
+--Dependencies check
+
+--STRONG:
+--Check Codea classes loaded
+if (not mesh) or (not color) or (not vec3) or (not vec4) then
+    F_UTILS.loaded = false
+    F_UTILS.error(errors.NO_CODEA)
+end
+
+--Functions definition
 
 --Vector (vec4) to matrix multiplication with w component normalisation
 function vmp(v, m)
@@ -70,8 +172,18 @@ function set_rgb_colors(mes)
     mes.colors = c
 end
 
+--Generate normals for mesh as it pointed from (0,0,0)
+function gen_normals(m)
+    local t = m:buffer("position"):get()
+    local n = {}
+    for i = 1,#t do
+        table.insert(n, t[i]:normalize())
+    end
+    m.normals = n
+end
+
 --Reduced and modified version of http://lua-users.org/wiki/CopyTable deepcopy(orig) function
-local function deepCopy(t)
+function deepCopy(t)
     local copy
     if type(t) == 'table' then
         copy = {}
