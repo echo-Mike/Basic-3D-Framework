@@ -6,12 +6,12 @@
 	<string>Unknown</string>
 	<key>Buffer Order</key>
 	<array>
+        <string>s_SLight</string>
 		<string>f_Utils</string>
         <string>f_Mesh_Gen</string>
 		<string>c_Model</string>
         <string>c_Viewport</string>
 		<string>c_Camera3D</string>
-		<string>c_Scene</string>
 		<string>Main</string>
 	</array>
 	<key>Created</key>

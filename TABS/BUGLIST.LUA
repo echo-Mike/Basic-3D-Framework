@@ -105,4 +105,22 @@ buglist = {
             sprite(self.interface_canvas)
         ]]
     },
+    DAED8CD8 = {
+        places = {
+            f_Mesh_Gen = {
+                places = {
+                    "subdivide(m, method)"
+                },
+                status = {
+                    "open"
+                }
+            },
+        },
+        status = "open",
+        description = [[
+            color buffer handles incorrectly
+            FIX:
+            use special funxtion for collor buffer handling
+        ]]
+    },
 }
