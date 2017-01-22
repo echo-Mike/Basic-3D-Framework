@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>Unknown</string>
+	<key>Buffer Order</key>
+	<array>
+		<string>f_Utils</string>
+        <string>f_Mesh_Gen</string>
+		<string>c_Model</string>
+        <string>c_Viewport</string>
+		<string>c_Camera3D</string>
+		<string>c_Scene</string>
+		<string>Main</string>
+	</array>
+	<key>Created</key>
+	<string>2016-11-02 00:00:01 +0000</string>
+	<key>Description</key>
+	<string>B3DF MIN</string>
+	<key>Icon</key>
+	<string>Icon.png</string>
+</dict>
+</plist>
